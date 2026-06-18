@@ -214,7 +214,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
 
         function createParticles(x, y) {
-            const colors = ['#ff2a6d', '#05d9e8', '#d300c5', '#ffd700'];
+            const colors = ['#39ff14', '#05d9e8', '#d300c5', '#ffd700'];
             for (let i = 0; i < 12; i++) {
                 particles.push({
                     x, y,
@@ -235,7 +235,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             hoopX += hoopDir * 2.5;
             if (hoopX < 40 || hoopX > canvas.width - 120) hoopDir *= -1;
 
-            ctx.strokeStyle = '#ff2a6d';
+            ctx.strokeStyle = '#39ff14';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(hoopX + 40, canvas.height - 55, 38, Math.PI, 0);
@@ -321,14 +321,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 ctx.stroke();
                 ctx.restore();
 
-                ctx.strokeStyle = '#ff2a6d';
+                ctx.strokeStyle = '#39ff14';
                 ctx.lineWidth = 1.5;
                 const cx = mouseX, cy = mouseY, size = 12, gap = 3;
                 ctx.beginPath(); ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - gap); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + size); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx - size, cy); ctx.lineTo(cx - gap, cy); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + size, cy); ctx.stroke();
-                ctx.fillStyle = '#ff2a6d';
+                ctx.fillStyle = '#39ff14';
                 ctx.beginPath(); ctx.arc(cx, cy, 1.5, 0, Math.PI * 2); ctx.fill();
             }
 
@@ -702,7 +702,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
                 let b = enemyBullets[i];
                 b.y += 4;
-                ctx.fillStyle = '#ff2a6d';
+                ctx.fillStyle = '#39ff14';
                 ctx.fillRect(b.x - 1, b.y, 3, 8);
                 if (b.y > canvas.height) { enemyBullets.splice(i, 1); continue; }
                 if (b.x > playerX - 12 && b.x < playerX + 12 && b.y > canvas.height - 40 && b.y < canvas.height - 15) {
@@ -717,7 +717,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
             ctx.font = '16px "Times New Roman"';
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#ff2a6d';
+            ctx.fillStyle = '#39ff14';
             for (let i = 0; i < lives; i++) {
                 ctx.fillText('❤', 12 + i * 20, 24);
             }
@@ -1402,5 +1402,5 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-console.log('%c NOIR PORTFOLIO ', 'background: #000000; color: #ff2a6d; font-size: 20px; border: 2px solid #ff2a6d; padding: 8px; font-family: Times New Roman;');
+console.log('%c NOIR PORTFOLIO ', 'background: #000000; color: #39ff14; font-size: 20px; border: 2px solid #39ff14; padding: 8px; font-family: Times New Roman;');
 console.log('%c The city never sleeps. ', 'color: #05d9e8; font-size: 12px; font-family: Times New Roman;');

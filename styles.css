@@ -20,7 +20,7 @@
     --text-muted: #999999;
     --text-faded: #555555;
     
-    --neon-pink: #ff2a6d;
+    --neon-pink: #39ff14;
     --neon-cyan: #05d9e8;
     --neon-purple: #d300c5;
     --neon-yellow: #ffd700;
@@ -856,7 +856,7 @@ section {
 }
 
 .chess-piece.black {
-    color: #ff2a6d;
+    color: #39ff14;
     text-shadow: 0 0 8px rgba(255,42,109,0.5);
 }
 
