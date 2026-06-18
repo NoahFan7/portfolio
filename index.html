@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noah | Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Scanlines Overlay -->
+    <div class="scanlines"></div>
+    
+    <!-- Vignette -->
+    <div class="vignette"></div>
+    
+    <!-- Rain Canvas -->
+    <canvas class="rain-canvas" id="rainCanvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">Noah</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Hi, I'm <span class="highlight">Noah</span></h1>
+                <p class="hero-subtitle">UCSD Triton | Working at ai&</p>
+                <p class="hero-description">
+                    Navigating the digital underworld, one line of code at a time.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Get in Touch</a>
+                    <a href="#about" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <h2>About Me</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>
+                        I'm Noah, operating out of the neon-lit corridors of <strong class="neon-text">ai&</strong> 
+                        and a proud <strong class="neon-text">UCSD Triton</strong>. In a city that never sleeps, 
+                        I craft solutions that matter.
+                    </p>
+                    <p>
+                        The streets are dark, but the code is clean. My journey in the tech industry 
+                        has given me the tools to navigate the most complex challenges and emerge with 
+                        innovative answers.
+                    </p>
+                    <p>
+                        When the screens go dark, you'll find me chasing the perfect shot on the court 
+                        or exploring the urban jungle after midnight.
+                    </p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat">
+                        <span class="stat-number">5+</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50+</span>
+                        <span class="stat-label">Projects Completed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">20+</span>
+                        <span class="stat-label">Happy Clients</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="experience">
+        <div class="container">
+            <div class="section-header">
+                <h2>Experience</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Present</span>
+                        <h3>ai&</h3>
+                        <p class="timeline-role">Current Position</p>
+                        <p>
+                            Contributing to cutting-edge AI projects and driving innovation 
+                            in artificial intelligence.
+                        </p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Previous</span>
+                        <h3>Previous Company</h3>
+                        <p class="timeline-role">Previous Role</p>
+                        <p>
+                            Developed and maintained various projects, collaborating with 
+                            cross-functional teams to deliver high-quality solutions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <h2>Skills</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-icon">&#128187;</div>
+                    <h3>Web Development</h3>
+                    <p>Building responsive and performant web applications</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">&#129302;</div>
+                    <h3>AI & Machine Learning</h3>
+                    <p>Developing intelligent systems and ML models</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">&#128295;</div>
+                    <h3>Problem Solving</h3>
+                    <p>Analytical thinking and creative solutions</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">&#128101;</div>
+                    <h3>Collaboration</h3>
+                    <p>Working effectively in diverse teams</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Basketball Game Section -->
+    <section id="game" class="game-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Hoop Shooter</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="game-wrapper">
+                <div class="game-header">
+                    <div class="game-title">🏀 Arcade</div>
+                    <div class="game-score">SCORE: <span id="gameScore">0</span></div>
+                </div>
+                <div class="game-canvas-container">
+                    <canvas id="gameCanvas"></canvas>
+                    <div class="game-high-score">HIGH: <span id="highScore">0</span></div>
+                    <div class="game-overlay" id="gameOverlay">
+                        <h2>🏀 Ready to Shoot?</h2>
+                        <p>Click anywhere to launch. Aim for the moving hoop!</p>
+                        <button class="game-start-btn" id="startGameBtn">Start Game</button>
+                    </div>
+                </div>
+                <div class="game-instructions">You have 3 lives. Make it count.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get in Touch</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="contact-content">
+                <p class="contact-text">
+                    The city is quiet at this hour. Send a message through the wire 
+                    and let's discuss your next big move.
+                </p>
+                <div class="contact-links">
+                    <a href="mailto:hello@noah.dev" class="contact-link">
+                        <span class="contact-icon">&#9993;</span>
+                        hello@noah.dev
+                    </a>
+                    <a href="#" class="contact-link">
+                        <span class="contact-icon">&#128279;</span>
+                        LinkedIn
+                    </a>
+                    <a href="#" class="contact-link">
+                        <span class="contact-icon">&#128038;</span>
+                        Twitter
+                    </a>
+                    <a href="#" class="contact-link">
+                        <span class="contact-icon">&#128187;</span>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Noah. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

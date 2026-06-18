@@ -1,0 +1,36 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment / User home noise
+.bash_history
+.bash_logout
+.bashrc
+.profile
+.cache/
+.config/
+.local/
+.npm/
+.ssh/
+.aiand-code/
+.sudo_as_admin_successful
+
+# Downloads folder (personal files)
+Downloads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Logs
+*.log
