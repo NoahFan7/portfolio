@@ -588,6 +588,54 @@ section {
     letter-spacing: 2px;
     text-transform: uppercase;
     text-shadow: 0 0 10px rgba(255,42,109,0.3);
+    user-select: none;
+}
+
+.game-dropdown {
+    position: relative;
+    z-index: 20;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: 0.3rem;
+    transition: transform 0.2s;
+}
+
+.game-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.game-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    min-width: 180px;
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.game-dropdown-menu.open {
+    display: flex;
+}
+
+.game-dropdown-item {
+    padding: 0.7rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.game-dropdown-item:hover, .game-dropdown-item.active {
+    background: var(--bg-light);
+    color: var(--neon-pink);
 }
 
 .game-score {

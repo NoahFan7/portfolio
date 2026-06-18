@@ -97,269 +97,686 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 })();
 
 // =============================
-// Basketball Mini Game
+// Arcade Manager
 // =============================
 (function() {
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
-    
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('gameScore');
     const highScoreEl = document.getElementById('highScore');
     const overlay = document.getElementById('gameOverlay');
     const startBtn = document.getElementById('startGameBtn');
-    
-    let gameRunning = false;
-    let score = 0;
-    let lives = 3;
-    let highScore = parseInt(localStorage.getItem('noah-hoop-highscore') || '0');
-    highScoreEl.textContent = highScore;
-    
-    // Game state
-    let hoopX = 250;
-    let hoopDir = 1;
-    let balls = [];
-    let particles = [];
-    let mouseX = 0;
-    let mouseY = 0;
-    let animId;
-    
+    const instructionsEl = document.querySelector('.game-instructions');
+    const dropdownToggle = document.getElementById('gameDropdownToggle');
+    const dropdownMenu = document.getElementById('gameDropdownMenu');
+    const dropdownItems = dropdownMenu ? dropdownMenu.querySelectorAll('.game-dropdown-item') : [];
+
+    let activeGame = null;
+    let activeGameId = 'basketball';
+
     function resize() {
         const container = canvas.parentElement;
         canvas.width = container.offsetWidth;
         canvas.height = container.offsetHeight;
     }
-    
     window.addEventListener('resize', resize);
     resize();
-    
-    function startGame() {
-        score = 0;
-        lives = 3;
-        balls = [];
-        particles = [];
-        scoreEl.textContent = score;
-        gameRunning = true;
-        resize();
-        gameLoop();
+
+    function stopGame() {
+        if (activeGame && activeGame.stop) activeGame.stop();
     }
-    
-    function gameOver() {
-        gameRunning = false;
-        cancelAnimationFrame(animId);
-        
-        overlay.querySelector('h2').textContent = 'Game Over';
-        overlay.querySelector('p').textContent = `Final Score: ${score}  |  High Score: ${highScore}`;
-        startBtn.textContent = 'Play Again';
-        overlay.classList.remove('hidden');
+
+    function switchGame(id) {
+        stopGame();
+        activeGameId = id;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (id === 'basketball') activeGame = basketballGame;
+        else if (id === 'dino') activeGame = dinoGame;
+        else if (id === 'invaders') activeGame = invadersGame;
+        if (activeGame && activeGame.init) activeGame.init();
     }
-    
-    function createParticles(x, y) {
-        const colors = ['#ff2a6d', '#05d9e8', '#d300c5', '#ffd700'];
-        for (let i = 0; i < 12; i++) {
-            particles.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 1) * 6,
-                size: Math.random() * 3 + 1,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                life: 1
-            });
+
+    startBtn.addEventListener('click', () => {
+        overlay.classList.add('hidden');
+        if (activeGame && activeGame.start) activeGame.start();
+    });
+
+    // Dropdown events
+    if (dropdownToggle) {
+        dropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownToggle.parentElement.classList.toggle('open');
+            dropdownMenu.classList.toggle('open');
+        });
+        document.addEventListener('click', () => {
+            dropdownToggle.parentElement.classList.remove('open');
+            dropdownMenu.classList.remove('open');
+        });
+    }
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.game;
+            if (id === activeGameId) return;
+            dropdownItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            if (dropdownToggle) dropdownToggle.innerHTML = item.textContent + ' <span class="dropdown-arrow">▼</span>';
+            switchGame(id);
+        });
+    });
+
+    // =============================
+    // Basketball
+    // =============================
+    const basketballGame = (function() {
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let hoopX = 250;
+        let hoopDir = 1;
+        let balls = [];
+        let particles = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let animId = null;
+        let highScore = parseInt(localStorage.getItem('noah-hoop-highscore') || '0');
+
+        function init() {
+            gameRunning = false;
+            score = 0;
+            lives = 3;
+            balls = [];
+            particles = [];
+            mouseX = 0;
+            mouseY = 0;
+            scoreEl.textContent = '0';
+            highScoreEl.textContent = highScore;
+            if (instructionsEl) instructionsEl.textContent = 'You have 3 lives. Make it count.';
+            overlay.querySelector('h2').textContent = '🏀 Ready to Shoot?';
+            overlay.querySelector('p').textContent = 'Click anywhere to launch. Aim for the moving hoop!';
+            startBtn.textContent = 'Start Game';
+            overlay.classList.remove('hidden');
+            cancelAnimationFrame(animId);
         }
-    }
-    
-    function gameLoop() {
-        if (!gameRunning) return;
-        
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Move hoop
-        hoopX += hoopDir * 2.5;
-        if (hoopX < 40 || hoopX > canvas.width - 120) hoopDir *= -1;
-        
-        // Draw hoop
-        ctx.strokeStyle = '#ff2a6d';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(hoopX + 40, canvas.height - 55, 38, Math.PI, 0);
-        ctx.stroke();
-        
-        // Draw net
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.4;
-        ctx.beginPath();
-        for (let i = 10; i <= 70; i += 12) {
-            ctx.moveTo(hoopX + i, canvas.height - 55);
-            ctx.lineTo(hoopX + i + (i < 40 ? 4 : -4), canvas.height - 32);
+
+        function start() {
+            score = 0; lives = 3; balls = []; particles = []; mouseX = 0; mouseY = 0;
+            scoreEl.textContent = '0';
+            gameRunning = true;
+            resize();
+            loop();
         }
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        
-        // Update balls
-        for (let i = balls.length - 1; i >= 0; i--) {
-            let b = balls[i];
-            b.vy += 0.35;
-            b.x += b.vx;
-            b.y += b.vy;
-            
-            ctx.font = '22px "Times New Roman"';
-            ctx.textAlign = 'center';
-            ctx.fillText('🏀', b.x, b.y);
-            
-            // Scored
-            if (!b.scored && b.y >= canvas.height - 65 && b.y <= canvas.height - 42) {
-                if (b.x >= hoopX + 8 && b.x <= hoopX + 72) {
-                    score++;
-                    scoreEl.textContent = score;
-                    b.scored = true;
-                    createParticles(b.x, b.y);
-                    
-                    if (score > highScore) {
-                        highScore = score;
-                        highScoreEl.textContent = highScore;
-                        localStorage.setItem('noah-hoop-highscore', highScore);
+
+        function stop() {
+            gameRunning = false;
+            cancelAnimationFrame(animId);
+            mouseX = 0; mouseY = 0;
+        }
+
+        function createParticles(x, y) {
+            const colors = ['#ff2a6d', '#05d9e8', '#d300c5', '#ffd700'];
+            for (let i = 0; i < 12; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 1) * 6,
+                    size: Math.random() * 3 + 1,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1
+                });
+            }
+        }
+
+        function loop() {
+            if (!gameRunning || activeGameId !== 'basketball') return;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            hoopX += hoopDir * 2.5;
+            if (hoopX < 40 || hoopX > canvas.width - 120) hoopDir *= -1;
+
+            ctx.strokeStyle = '#ff2a6d';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(hoopX + 40, canvas.height - 55, 38, Math.PI, 0);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            for (let i = 10; i <= 70; i += 12) {
+                ctx.moveTo(hoopX + i, canvas.height - 55);
+                ctx.lineTo(hoopX + i + (i < 40 ? 4 : -4), canvas.height - 32);
+            }
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            for (let i = balls.length - 1; i >= 0; i--) {
+                let b = balls[i];
+                b.vy += 0.35;
+                b.x += b.vx;
+                b.y += b.vy;
+
+                ctx.font = '22px "Times New Roman"';
+                ctx.textAlign = 'center';
+                ctx.fillText('🏀', b.x, b.y);
+
+                if (!b.scored && b.y >= canvas.height - 65 && b.y <= canvas.height - 42) {
+                    if (b.x >= hoopX + 8 && b.x <= hoopX + 72) {
+                        score++;
+                        scoreEl.textContent = score;
+                        b.scored = true;
+                        createParticles(b.x, b.y);
+                        if (score > highScore) {
+                            highScore = score;
+                            highScoreEl.textContent = highScore;
+                            localStorage.setItem('noah-hoop-highscore', highScore);
+                        }
                     }
                 }
+
+                if (b.y > canvas.height - 10 && !b.scored) {
+                    lives--;
+                    balls.splice(i, 1);
+                    if (lives <= 0) {
+                        gameRunning = false;
+                        overlay.querySelector('h2').textContent = 'Game Over';
+                        overlay.querySelector('p').textContent = `Final Score: ${score}  |  High Score: ${highScore}`;
+                        startBtn.textContent = 'Play Again';
+                        overlay.classList.remove('hidden');
+                        return;
+                    }
+                    continue;
+                }
+                if (b.y > canvas.height + 50) balls.splice(i, 1);
             }
-            
-            // Missed
-            if (b.y > canvas.height - 10 && !b.scored) {
-                lives--;
-                balls.splice(i, 1);
-                if (lives <= 0) {
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 0.025;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.font = '18px "Times New Roman"';
+            ctx.textAlign = 'left';
+            for (let i = 0; i < lives; i++) ctx.fillText('🏀', 12 + i * 22, 26);
+
+            if (mouseX > 0 && mouseY > 0) {
+                const startX = canvas.width / 2;
+                const startY = canvas.height - 20;
+                ctx.save();
+                ctx.setLineDash([4, 6]);
+                ctx.strokeStyle = 'rgba(255, 42, 109, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(mouseX, mouseY);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.strokeStyle = '#ff2a6d';
+                ctx.lineWidth = 1.5;
+                const cx = mouseX, cy = mouseY, size = 12, gap = 3;
+                ctx.beginPath(); ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - gap); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + size); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx - size, cy); ctx.lineTo(cx - gap, cy); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + size, cy); ctx.stroke();
+                ctx.fillStyle = '#ff2a6d';
+                ctx.beginPath(); ctx.arc(cx, cy, 1.5, 0, Math.PI * 2); ctx.fill();
+            }
+
+            animId = requestAnimationFrame(loop);
+        }
+
+        function shoot(e) {
+            if (!gameRunning || activeGameId !== 'basketball') return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX || e.touches?.[0]?.clientX) - rect.left;
+            const clickY = (e.clientY || e.touches?.[0]?.clientY) - rect.top;
+            const startX = canvas.width / 2;
+            const startY = canvas.height - 20;
+            const dx = clickX - startX;
+            const dy = clickY - startY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const speed = Math.min(dist * 0.032, 16);
+            const angle = Math.atan2(dy, dx);
+            balls.push({ x: startX, y: startY, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, scored: false });
+        }
+
+        function onMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        }
+        function onMouseLeave() { mouseX = 0; mouseY = 0; }
+
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mouseleave', onMouseLeave);
+        canvas.addEventListener('click', shoot);
+        canvas.addEventListener('touchstart', (e) => { if (activeGameId === 'basketball') { e.preventDefault(); shoot(e); } });
+
+        return { init, start, stop };
+    })();
+
+    // =============================
+    // Dino Run
+    // =============================
+    const dinoGame = (function() {
+        let gameRunning = false;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('noah-dino-highscore') || '0');
+        let dinoY = 0;
+        let dinoVy = 0;
+        let isJumping = false;
+        let obstacles = [];
+        let particles = [];
+        let groundY = 0;
+        let speed = 5;
+        let spawnTimer = 0;
+        let animId = null;
+        const gravity = 0.6;
+        const jumpPower = -12;
+
+        function init() {
+            gameRunning = false;
+            score = 0;
+            scoreEl.textContent = '0';
+            highScoreEl.textContent = highScore;
+            if (instructionsEl) instructionsEl.textContent = 'Press SPACE or Click/Tap to jump over cacti.';
+            overlay.querySelector('h2').textContent = '🦖 Dino Run';
+            overlay.querySelector('p').textContent = 'Jump over the cacti. How far can you run?';
+            startBtn.textContent = 'Start Game';
+            overlay.classList.remove('hidden');
+            cancelAnimationFrame(animId);
+        }
+
+        function start() {
+            gameRunning = true;
+            score = 0;
+            obstacles = [];
+            particles = [];
+            dinoVy = 0;
+            isJumping = false;
+            speed = 5;
+            spawnTimer = 60;
+            resize();
+            groundY = canvas.height - 40;
+            dinoY = groundY - 28;
+            loop();
+        }
+
+        function stop() {
+            gameRunning = false;
+            cancelAnimationFrame(animId);
+        }
+
+        function jump(e) {
+            if (activeGameId !== 'dino') return;
+            if (e) e.preventDefault();
+            if (!gameRunning) return;
+            if (!isJumping) {
+                dinoVy = jumpPower;
+                isJumping = true;
+            }
+        }
+
+        function loop() {
+            if (!gameRunning || activeGameId !== 'dino') return;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            groundY = canvas.height - 40;
+
+            dinoY += dinoVy;
+            if (dinoY < groundY - 28) {
+                dinoVy += gravity;
+            } else {
+                dinoVy = 0;
+                dinoY = groundY - 28;
+                isJumping = false;
+            }
+
+            speed = 5 + Math.floor(score / 500) * 0.5;
+            score += 1;
+            scoreEl.textContent = Math.floor(score / 10);
+
+            spawnTimer--;
+            if (spawnTimer <= 0) {
+                spawnTimer = Math.max(40, 80 + Math.random() * 60 - score/100);
+                obstacles.push({
+                    x: canvas.width,
+                    y: groundY - 26,
+                    w: 18 + Math.random() * 14,
+                    h: 22 + Math.random() * 16,
+                    emoji: '🌵'
+                });
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let ob = obstacles[i];
+                ob.x -= speed;
+
+                ctx.font = '24px "Times New Roman"';
+                ctx.textAlign = 'center';
+                ctx.fillText(ob.emoji, ob.x + ob.w/2, ob.y + ob.h/2 + 10);
+
+                const dinoX = 60;
+                const dinoW = 24;
+                const dinoH = 28;
+                if (dinoX + dinoW > ob.x + 4 && dinoX < ob.x + ob.w - 4 &&
+                    dinoY + dinoH > ob.y + 4 && dinoY < ob.y + ob.h - 4) {
                     gameOver();
                     return;
                 }
-                continue;
+
+                if (ob.x + ob.w < 0) obstacles.splice(i, 1);
             }
-            
-            if (b.y > canvas.height + 50) balls.splice(i, 1);
-        }
-        
-        // Update particles
-        for (let i = particles.length - 1; i >= 0; i--) {
-            let p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.12;
-            p.life -= 0.025;
-            
-            if (p.life <= 0) {
-                particles.splice(i, 1);
-                continue;
-            }
-            
-            ctx.globalAlpha = p.life;
-            ctx.fillStyle = p.color;
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        
-        // Lives
-        ctx.font = '18px "Times New Roman"';
-        ctx.textAlign = 'left';
-        for (let i = 0; i < lives; i++) {
-            ctx.fillText('🏀', 12 + i * 22, 26);
-        }
-        
-        // Crosshair (only when playing)
-        if (mouseX > 0 && mouseY > 0) {
-            const startX = canvas.width / 2;
-            const startY = canvas.height - 20;
-            
-            // Dotted trajectory
-            ctx.save();
-            ctx.setLineDash([4, 6]);
-            ctx.strokeStyle = 'rgba(255, 42, 109, 0.3)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(mouseX, mouseY);
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
             ctx.stroke();
-            ctx.restore();
-            
-            // Crosshair
-            ctx.strokeStyle = '#ff2a6d';
-            ctx.lineWidth = 1.5;
-            const cx = mouseX;
-            const cy = mouseY;
-            const size = 12;
-            const gap = 3;
-            
-            // Top
-            ctx.beginPath(); ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - gap); ctx.stroke();
-            // Bottom
-            ctx.beginPath(); ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + size); ctx.stroke();
-            // Left
-            ctx.beginPath(); ctx.moveTo(cx - size, cy); ctx.lineTo(cx - gap, cy); ctx.stroke();
-            // Right
-            ctx.beginPath(); ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + size, cy); ctx.stroke();
-            
-            // Center dot
-            ctx.fillStyle = '#ff2a6d';
-            ctx.beginPath();
-            ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
-            ctx.fill();
+
+            ctx.font = '28px "Times New Roman"';
+            ctx.textAlign = 'center';
+            ctx.fillText('🦖', 72, dinoY + 22);
+
+            if (!isJumping && score % 10 === 0) {
+                particles.push({
+                    x: 60,
+                    y: groundY,
+                    vx: -speed - Math.random() * 2,
+                    vy: -Math.random() * 2,
+                    life: 1
+                });
+            }
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            animId = requestAnimationFrame(loop);
         }
-        
-        animId = requestAnimationFrame(gameLoop);
-    }
-    
-    // Track mouse position
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
-    });
-    
-    canvas.addEventListener('mouseleave', () => {
-        mouseX = 0;
-        mouseY = 0;
-    });
-    
-    // Shoot
-    function shoot(e) {
-        e.preventDefault();
-        if (!gameRunning) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        const clickX = (e.clientX || e.touches?.[0]?.clientX) - rect.left;
-        const clickY = (e.clientY || e.touches?.[0]?.clientY) - rect.top;
-        
-        const startX = canvas.width / 2;
-        const startY = canvas.height - 20;
-        const dx = clickX - startX;
-        const dy = clickY - startY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const speed = Math.min(dist * 0.032, 16);
-        const angle = Math.atan2(dy, dx);
-        
-        balls.push({
-            x: startX,
-            y: startY,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            scored: false
+
+        function gameOver() {
+            gameRunning = false;
+            const displayScore = Math.floor(score / 10);
+            if (displayScore > highScore) {
+                highScore = displayScore;
+                highScoreEl.textContent = highScore;
+                localStorage.setItem('noah-dino-highscore', highScore);
+            }
+            overlay.querySelector('h2').textContent = 'Game Over';
+            overlay.querySelector('p').textContent = `Score: ${displayScore}  |  High Score: ${highScore}`;
+            startBtn.textContent = 'Play Again';
+            overlay.classList.remove('hidden');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (activeGameId === 'dino' && e.code === 'Space') jump(e);
         });
-    }
-    
-    canvas.addEventListener('click', shoot);
-    canvas.addEventListener('touchstart', (e) => {
-        if (!gameRunning) return;
-        e.preventDefault();
-        shoot(e);
-    });
-    
-    // Start button
-    startBtn.addEventListener('click', () => {
-        overlay.classList.add('hidden');
-        startGame();
-    });
+        canvas.addEventListener('mousedown', jump);
+        canvas.addEventListener('touchstart', (e) => { if (activeGameId === 'dino') jump(e); });
+
+        return { init, start, stop };
+    })();
+
+    // =============================
+    // Space Invaders
+    // =============================
+    const invadersGame = (function() {
+        let gameRunning = false;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('noah-invaders-highscore') || '0');
+        let playerX = 0;
+        let bullets = [];
+        let enemyBullets = [];
+        let invaders = [];
+        let invaderDir = 1;
+        let invaderStep = 0;
+        let invaderSpeed = 30;
+        let frameCount = 0;
+        let lives = 3;
+        let animId = null;
+        let keys = {};
+
+        function init() {
+            gameRunning = false;
+            score = 0;
+            lives = 3;
+            scoreEl.textContent = '0';
+            highScoreEl.textContent = highScore;
+            if (instructionsEl) instructionsEl.textContent = 'Move with mouse/arrows. Click or SPACE to shoot.';
+            overlay.querySelector('h2').textContent = '👾 Space Invaders';
+            overlay.querySelector('p').textContent = 'Destroy the alien fleet before they land!';
+            startBtn.textContent = 'Start Game';
+            overlay.classList.remove('hidden');
+            cancelAnimationFrame(animId);
+        }
+
+        function start() {
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            bullets = [];
+            enemyBullets = [];
+            invaderDir = 1;
+            invaderStep = 0;
+            invaderSpeed = 30;
+            frameCount = 0;
+            resize();
+            playerX = canvas.width / 2;
+            createInvaders();
+            loop();
+        }
+
+        function stop() {
+            gameRunning = false;
+            cancelAnimationFrame(animId);
+        }
+
+        function createInvaders() {
+            invaders = [];
+            const cols = 8;
+            const rows = 4;
+            const startX = (canvas.width - cols * 40) / 2;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    invaders.push({
+                        x: startX + c * 40,
+                        y: 40 + r * 35,
+                        alive: true,
+                        emoji: r === 0 ? '👾' : (r === 1 ? '👽' : '🛸')
+                    });
+                }
+            }
+        }
+
+        function loop() {
+            if (!gameRunning || activeGameId !== 'invaders') return;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            frameCount++;
+
+            if (keys['ArrowLeft']) playerX -= 5;
+            if (keys['ArrowRight']) playerX += 5;
+            if (playerX < 20) playerX = 20;
+            if (playerX > canvas.width - 20) playerX = canvas.width - 20;
+
+            ctx.fillStyle = '#05d9e8';
+            ctx.beginPath();
+            ctx.moveTo(playerX, canvas.height - 35);
+            ctx.lineTo(playerX - 12, canvas.height - 15);
+            ctx.lineTo(playerX + 12, canvas.height - 15);
+            ctx.closePath();
+            ctx.fill();
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.y -= 8;
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(b.x - 1, b.y, 3, 10);
+                if (b.y < 0) { bullets.splice(i, 1); continue; }
+
+                for (let inv of invaders) {
+                    if (!inv.alive) continue;
+                    if (b.x > inv.x - 14 && b.x < inv.x + 14 && b.y > inv.y - 14 && b.y < inv.y + 14) {
+                        inv.alive = false;
+                        bullets.splice(i, 1);
+                        score += 10;
+                        scoreEl.textContent = score;
+                        if (score > highScore) {
+                            highScore = score;
+                            highScoreEl.textContent = highScore;
+                            localStorage.setItem('noah-invaders-highscore', highScore);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            let moveDown = false;
+            if (frameCount % Math.max(10, invaderSpeed - Math.floor(score/50)) === 0) {
+                let leftmost = canvas.width, rightmost = 0;
+                let aliveCount = 0;
+                for (let inv of invaders) {
+                    if (!inv.alive) continue;
+                    aliveCount++;
+                    if (inv.x < leftmost) leftmost = inv.x;
+                    if (inv.x > rightmost) rightmost = inv.x;
+                }
+                if (aliveCount === 0) {
+                    createInvaders();
+                    invaderSpeed = Math.max(10, invaderSpeed - 2);
+                } else {
+                    if (rightmost >= canvas.width - 20 && invaderDir === 1) moveDown = true;
+                    else if (leftmost <= 20 && invaderDir === -1) moveDown = true;
+
+                    if (moveDown) {
+                        invaderDir *= -1;
+                        for (let inv of invaders) inv.y += 20;
+                    } else {
+                        for (let inv of invaders) inv.x += 10 * invaderDir;
+                    }
+                }
+            }
+
+            ctx.font = '20px "Times New Roman"';
+            ctx.textAlign = 'center';
+            for (let inv of invaders) {
+                if (!inv.alive) continue;
+                ctx.fillText(inv.emoji, inv.x, inv.y + 6);
+                if (inv.y > canvas.height - 60) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            if (frameCount % 60 === 0) {
+                const shooters = invaders.filter(i => i.alive);
+                if (shooters.length > 0) {
+                    const shooter = shooters[Math.floor(Math.random() * shooters.length)];
+                    enemyBullets.push({ x: shooter.x, y: shooter.y + 10 });
+                }
+            }
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                let b = enemyBullets[i];
+                b.y += 4;
+                ctx.fillStyle = '#ff2a6d';
+                ctx.fillRect(b.x - 1, b.y, 3, 8);
+                if (b.y > canvas.height) { enemyBullets.splice(i, 1); continue; }
+                if (b.x > playerX - 12 && b.x < playerX + 12 && b.y > canvas.height - 40 && b.y < canvas.height - 15) {
+                    enemyBullets.splice(i, 1);
+                    lives--;
+                    if (lives <= 0) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            ctx.font = '16px "Times New Roman"';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ff2a6d';
+            for (let i = 0; i < lives; i++) {
+                ctx.fillText('❤', 12 + i * 20, 24);
+            }
+
+            animId = requestAnimationFrame(loop);
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            if (score > highScore) {
+                highScore = score;
+                highScoreEl.textContent = highScore;
+                localStorage.setItem('noah-invaders-highscore', highScore);
+            }
+            overlay.querySelector('h2').textContent = 'Game Over';
+            overlay.querySelector('p').textContent = `Score: ${score}  |  High Score: ${highScore}`;
+            startBtn.textContent = 'Play Again';
+            overlay.classList.remove('hidden');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (activeGameId !== 'invaders') return;
+            keys[e.key] = true;
+            if (e.code === 'Space') { e.preventDefault(); shoot(); }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (activeGameId !== 'invaders') return;
+            keys[e.key] = false;
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (activeGameId !== 'invaders') return;
+            const rect = canvas.getBoundingClientRect();
+            playerX = e.clientX - rect.left;
+        });
+        canvas.addEventListener('mousedown', () => {
+            if (activeGameId !== 'invaders') return;
+            shoot();
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            if (activeGameId !== 'invaders') return;
+            const rect = canvas.getBoundingClientRect();
+            playerX = e.touches[0].clientX - rect.left;
+            shoot();
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (activeGameId !== 'invaders') return;
+            const rect = canvas.getBoundingClientRect();
+            playerX = e.touches[0].clientX - rect.left;
+        });
+
+        function shoot() {
+            if (!gameRunning) return;
+            bullets.push({ x: playerX, y: canvas.height - 45 });
+        }
+
+        return { init, start, stop };
+    })();
+
+    switchGame('basketball');
 })();
 
 // =============================

@@ -163,16 +163,23 @@
         </div>
     </section>
 
-    <!-- Basketball Game Section -->
+    <!-- Arcade Section -->
     <section id="game" class="game-section">
         <div class="container">
             <div class="section-header">
-                <h2>Hoop Shooter</h2>
+                <h2>Arcade</h2>
                 <div class="underline"></div>
             </div>
             <div class="game-wrapper">
                 <div class="game-header">
-                    <div class="game-title">🏀 Arcade</div>
+                    <div class="game-dropdown" id="gameDropdown">
+                        <div class="game-title" id="gameDropdownToggle">🏀 Arcade <span class="dropdown-arrow">▼</span></div>
+                        <div class="game-dropdown-menu" id="gameDropdownMenu">
+                            <div class="game-dropdown-item active" data-game="basketball">🏀 Hoop Shooter</div>
+                            <div class="game-dropdown-item" data-game="dino">🦖 Dino Run</div>
+                            <div class="game-dropdown-item" data-game="invaders">👾 Space Invaders</div>
+                        </div>
+                    </div>
                     <div class="game-score">SCORE: <span id="gameScore">0</span></div>
                 </div>
                 <div class="game-canvas-container">
